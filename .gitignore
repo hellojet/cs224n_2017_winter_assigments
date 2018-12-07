@@ -1,2 +1,3 @@
-./assignments/assignment1/utils/datasets/*
-./assignments/assignment1/.env/*
+assignments/assignment1/utils/
+!assignments/assignment1/utils/*.py
+assignments/assignment1/.env/
