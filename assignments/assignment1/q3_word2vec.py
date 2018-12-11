@@ -15,7 +15,7 @@ def normalizeRows(x):
     """
 
     ### YOUR CODE HERE
-    raise NotImplementedError
+    x = x / np.sqrt(np.sum(x**2, 1)).reshape(2,1)
     ### END YOUR CODE
 
     return x
@@ -58,6 +58,7 @@ def softmaxCostAndGradient(predicted, target, outputVectors, dataset):
     """
 
     ### YOUR CODE HERE
+    
     raise NotImplementedError
     ### END YOUR CODE
 
