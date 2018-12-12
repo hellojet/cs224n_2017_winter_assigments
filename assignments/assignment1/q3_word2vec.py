@@ -15,7 +15,8 @@ def normalizeRows(x):
     """
 
     ### YOUR CODE HERE
-    x = x / np.sqrt(np.sum(x**2, 1)).reshape(2,1)
+    # 对x的行进行平方求和，然后再以x除来标准化
+    x = x / np.sqrt(np.sum(x**2, 1)).reshape(-1,1)
     ### END YOUR CODE
 
     return x
@@ -58,8 +59,18 @@ def softmaxCostAndGradient(predicted, target, outputVectors, dataset):
     """
 
     ### YOUR CODE HERE
-    
-    raise NotImplementedError
+    # 构造y：target位置为1，其他位置为0
+    y = np.zeros((1, outputVectors.shape[0]))
+    y[0,target] = 1
+    # 计算y_hat
+    # outputVectors是U矩阵，predicted是v向量
+    y_hat = softmax(np.dot(outputVectors, predicted))
+    # 计算cost: CE = -y*log(y_hat)
+    cost = -y.dot(np.log(y_hat))
+    # 计算gradPred：U(y_hat-y)
+    gradPred = outputVectors.dot(y_hat - y)
+    # 计算grad：v(y_hat-y).T
+    grad = predicted.dot((y_hat-y).T)
     ### END YOUR CODE
 
     return cost, gradPred, grad
@@ -97,7 +108,13 @@ def negSamplingCostAndGradient(predicted, target, outputVectors, dataset,
     indices.extend(getNegativeSamples(target, dataset, K))
 
     ### YOUR CODE HERE
-    raise NotImplementedError
+    # 构造y：target位置为1，其他位置为0
+    y = np.zeros((1, outputVectors.shape[0]))
+    y[0,target] = 1
+    # 计算y_hat
+    # outputVectors是U矩阵，predicted是v向量
+    y_hat = softmax(np.dot(outputVectors, predicted))
+    
     ### END YOUR CODE
 
     return cost, gradPred, grad
@@ -196,9 +213,9 @@ def word2vec_sgd_wrapper(word2vecModel, tokens, wordVectors, dataset, C,
 def test_word2vec():
     """ Interface to the dataset for negative sampling """
     dataset = type('dummy', (), {})()
+    # 返回(0,4]之间的一个整数, 用于负采样
     def dummySampleTokenIdx():
         return random.randint(0, 4)
-
     def getRandomContext(C):
         tokens = ["a", "b", "c", "d", "e"]
         return tokens[random.randint(0,4)], \
@@ -206,21 +223,26 @@ def test_word2vec():
     dataset.sampleTokenIdx = dummySampleTokenIdx
     dataset.getRandomContext = getRandomContext
 
+    # 设置随机种子，后面生成的随机数/矩阵都被确定下来了，方便测试
     random.seed(31415)
     np.random.seed(9265)
     dummy_vectors = normalizeRows(np.random.randn(10,3))
     dummy_tokens = dict([("a",0), ("b",1), ("c",2),("d",3),("e",4)])
     print "==== Gradient check for skip-gram ===="
+    # 测试skip-gram和层序softmax
     gradcheck_naive(lambda vec: word2vec_sgd_wrapper(
         skipgram, dummy_tokens, vec, dataset, 5, softmaxCostAndGradient),
         dummy_vectors)
+    # 测试skip-gram和负采样
     gradcheck_naive(lambda vec: word2vec_sgd_wrapper(
         skipgram, dummy_tokens, vec, dataset, 5, negSamplingCostAndGradient),
         dummy_vectors)
     print "\n==== Gradient check for CBOW      ===="
+    # 测试CBOW和层序softmax
     gradcheck_naive(lambda vec: word2vec_sgd_wrapper(
         cbow, dummy_tokens, vec, dataset, 5, softmaxCostAndGradient),
         dummy_vectors)
+    # 测试CBOW和负采样
     gradcheck_naive(lambda vec: word2vec_sgd_wrapper(
         cbow, dummy_tokens, vec, dataset, 5, negSamplingCostAndGradient),
         dummy_vectors)
