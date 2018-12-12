@@ -108,13 +108,15 @@ def negSamplingCostAndGradient(predicted, target, outputVectors, dataset,
     indices.extend(getNegativeSamples(target, dataset, K))
 
     ### YOUR CODE HERE
-    # 构造y：target位置为1，其他位置为0
-    y = np.zeros((1, outputVectors.shape[0]))
-    y[0,target] = 1
-    # 计算y_hat
-    # outputVectors是U矩阵，predicted是v向量
-    y_hat = softmax(np.dot(outputVectors, predicted))
-    
+    # 计算cost：-log(sigmoid(Uv))-\Sigma(log(sigmoid(-u[indices]v)))
+    cost = -np.log(sigmoid(outputVectors.T.dot(predicted)))-np.sum(np.log(sigmoid(-outputVectors[indices,:].T.dot(predicted))))
+    # 计算gradPred：(sigmoid(uv)-1)u-\Sigma((sigmoid(-uv)-1)u)
+    gradPred = (sigmoid(outputVectors[target].T.dot(predicted))-1).outputVectors[target]-np.sum((sigmoid(-outputVectors[target].T.dot(predicted))-1).dot(outputVectors[target]))
+    # 计算grad[target]：(sigmoid(uv)-1)v
+    # 计算grad[k]: -(sigmoid(-u_k * v)-1)v
+    grad = np.zeros((outputVectors.shape[0], 1))
+    grad[target] = (sigmoid(outputVectors[target].T.dot(predicted)) - 1).dot(predicted)
+    grad[indices] = -(sigmoid(-outputVectors[indices].T.dot(predicted))).dot(predicted)
     ### END YOUR CODE
 
     return cost, gradPred, grad
@@ -149,6 +151,7 @@ def skipgram(currentWord, C, contextWords, tokens, inputVectors, outputVectors,
     gradOut = np.zeros(outputVectors.shape)
 
     ### YOUR CODE HERE
+    
     raise NotImplementedError
     ### END YOUR CODE
 
