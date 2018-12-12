@@ -3,3 +3,4 @@ assignments/assignment1/utils/datasets/
 *.pyc
 *.ipynb
 assignments/assignment1/.ipynb_checkpoints/
+.vscode
