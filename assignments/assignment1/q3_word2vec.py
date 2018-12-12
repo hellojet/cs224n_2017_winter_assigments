@@ -15,7 +15,7 @@ def normalizeRows(x):
     """
 
     ### YOUR CODE HERE
-    # 对x的行进行平方求和，然后再以x除来标准化
+    # get the sum of the rows of x**2, the x / what we get just now to normalization
     x = x / np.sqrt(np.sum(x**2, 1)).reshape(-1,1)
     ### END YOUR CODE
 
@@ -59,17 +59,17 @@ def softmaxCostAndGradient(predicted, target, outputVectors, dataset):
     """
 
     ### YOUR CODE HERE
-    # 构造y：target位置为1，其他位置为0
+    # get y: y[target] = 1, else position = 0
     y = np.zeros((1, outputVectors.shape[0]))
     y[0,target] = 1
-    # 计算y_hat
-    # outputVectors是U矩阵，predicted是v向量
+    # get y_hat
+    # outputVectors is U matrix, predicted is vector v
     y_hat = softmax(np.dot(outputVectors, predicted))
-    # 计算cost: CE = -y*log(y_hat)
+    # get cost: CE = -y*log(y_hat)
     cost = -y.dot(np.log(y_hat))
-    # 计算gradPred：U(y_hat-y)
+    # get gradPred: U(y_hat-y)
     gradPred = outputVectors.dot(y_hat - y)
-    # 计算grad：v(y_hat-y).T
+    # get grad: v(y_hat-y).T
     grad = predicted.dot((y_hat-y).T)
     ### END YOUR CODE
 
@@ -108,12 +108,12 @@ def negSamplingCostAndGradient(predicted, target, outputVectors, dataset,
     indices.extend(getNegativeSamples(target, dataset, K))
 
     ### YOUR CODE HERE
-    # 计算cost：-log(sigmoid(Uv))-\Sigma(log(sigmoid(-u[indices]v)))
+    # get cost: -log(sigmoid(Uv))-\Sigma(log(sigmoid(-u[indices]v)))
     cost = -np.log(sigmoid(outputVectors.T.dot(predicted)))-np.sum(np.log(sigmoid(-outputVectors[indices,:].T.dot(predicted))))
-    # 计算gradPred：(sigmoid(uv)-1)u-\Sigma((sigmoid(-uv)-1)u)
+    # get gradPred: (sigmoid(uv)-1)u-\Sigma((sigmoid(-uv)-1)u)
     gradPred = (sigmoid(outputVectors[target].T.dot(predicted))-1).outputVectors[target]-np.sum((sigmoid(-outputVectors[target].T.dot(predicted))-1).dot(outputVectors[target]))
-    # 计算grad[target]：(sigmoid(uv)-1)v
-    # 计算grad[k]: -(sigmoid(-u_k * v)-1)v
+    # get grad[target]: (sigmoid(uv)-1)v
+    # get grad[k]: -(sigmoid(-u_k * v)-1)v
     grad = np.zeros((outputVectors.shape[0], 1))
     grad[target] = (sigmoid(outputVectors[target].T.dot(predicted)) - 1).dot(predicted)
     grad[indices] = -(sigmoid(-outputVectors[indices].T.dot(predicted))).dot(predicted)
@@ -151,6 +151,22 @@ def skipgram(currentWord, C, contextWords, tokens, inputVectors, outputVectors,
     gradOut = np.zeros(outputVectors.shape)
 
     ### YOUR CODE HERE
+    ''' print information:
+    currentWord: b
+    C: 3
+    contextWords: ['e', 'a', 'c', 'c', 'd', 'd']
+    tokens: {'a': 0, 'c': 2, 'b': 1, 'e': 4, 'd': 3}
+    inputVectors: 5x3 [[-0.96735714 -0.02182641  0.25247529]
+    [ 0.73663029 -0.48088687 -0.47552459]
+    [-0.27323645  0.12538062  0.95374082]
+    [-0.56713774 -0.27178229 -0.77748902]
+    [-0.59609459  0.7795666   0.19221644]]
+    outputVectors: 5x3 [[-0.6831809  -0.04200519  0.72904007]
+    [ 0.18289107  0.76098587 -0.62245591]
+    [-0.61517874  0.5147624  -0.59713884]
+    [-0.33867074 -0.80966534 -0.47931635]
+    [-0.52629529 -0.78190408  0.33412466]]
+    end print'''
     
     raise NotImplementedError
     ### END YOUR CODE
@@ -194,6 +210,22 @@ def word2vec_sgd_wrapper(word2vecModel, tokens, wordVectors, dataset, C,
     N = wordVectors.shape[0]
     inputVectors = wordVectors[:N/2,:]
     outputVectors = wordVectors[N/2:,:]
+    ''' print variables:
+    print grad: 10x3 zeros
+    print N: 10
+    print inputVectors: 5x3
+    [[-0.96735714 -0.02182641  0.25247529]
+    [ 0.73663029 -0.48088687 -0.47552459]
+    [-0.27323645  0.12538062  0.95374082]
+    [-0.56713774 -0.27178229 -0.77748902]
+    [-0.59609459  0.7795666   0.19221644]]
+    print outputVectors: 5x3
+    [[-0.6831809  -0.04200519  0.72904007]
+    [ 0.18289107  0.76098587 -0.62245591]
+    [-0.61517874  0.5147624  -0.59713884]
+    [-0.33867074 -0.80966534 -0.47931635]
+    [-0.52629529 -0.78190408  0.33412466]]
+    '''
     for i in xrange(batchsize):
         C1 = random.randint(1,C)
         centerword, context = dataset.getRandomContext(C1)
@@ -216,7 +248,7 @@ def word2vec_sgd_wrapper(word2vecModel, tokens, wordVectors, dataset, C,
 def test_word2vec():
     """ Interface to the dataset for negative sampling """
     dataset = type('dummy', (), {})()
-    # 返回(0,4]之间的一个整数, 用于负采样
+    # return integer between (0,4], used for negative sampling
     def dummySampleTokenIdx():
         return random.randint(0, 4)
     def getRandomContext(C):
@@ -226,26 +258,41 @@ def test_word2vec():
     dataset.sampleTokenIdx = dummySampleTokenIdx
     dataset.getRandomContext = getRandomContext
 
-    # 设置随机种子，后面生成的随机数/矩阵都被确定下来了，方便测试
+    # set the random seed for fixing the random number/matrix after, and convenience for testing
     random.seed(31415)
     np.random.seed(9265)
     dummy_vectors = normalizeRows(np.random.randn(10,3))
     dummy_tokens = dict([("a",0), ("b",1), ("c",2),("d",3),("e",4)])
     print "==== Gradient check for skip-gram ===="
-    # 测试skip-gram和层序softmax
+
+    # test skip-gram and softmax
+    ''' print variables:
+    dummy_tokens: {'a': 0, 'c': 2, 'b': 1, 'e': 4, 'd': 3}
+    dummy_vectors: 10x3
+    [[-0.96735714 -0.02182641  0.25247529]
+    [ 0.73663029 -0.48088687 -0.47552459]
+    [-0.27323645  0.12538062  0.95374082]
+    [-0.56713774 -0.27178229 -0.77748902]
+    [-0.59609459  0.7795666   0.19221644]
+    [-0.6831809  -0.04200519  0.72904007]
+    [ 0.18289107  0.76098587 -0.62245591]
+    [-0.61517874  0.5147624  -0.59713884]
+    [-0.33867074 -0.80966534 -0.47931635]
+    [-0.52629529 -0.78190408  0.33412466]]
+    '''
     gradcheck_naive(lambda vec: word2vec_sgd_wrapper(
         skipgram, dummy_tokens, vec, dataset, 5, softmaxCostAndGradient),
         dummy_vectors)
-    # 测试skip-gram和负采样
+    # test skip-gram and negative sampling
     gradcheck_naive(lambda vec: word2vec_sgd_wrapper(
         skipgram, dummy_tokens, vec, dataset, 5, negSamplingCostAndGradient),
         dummy_vectors)
     print "\n==== Gradient check for CBOW      ===="
-    # 测试CBOW和层序softmax
+    # test CBOW and softmax
     gradcheck_naive(lambda vec: word2vec_sgd_wrapper(
         cbow, dummy_tokens, vec, dataset, 5, softmaxCostAndGradient),
         dummy_vectors)
-    # 测试CBOW和负采样
+    # test CBOW and negative sampling
     gradcheck_naive(lambda vec: word2vec_sgd_wrapper(
         cbow, dummy_tokens, vec, dataset, 5, negSamplingCostAndGradient),
         dummy_vectors)
