@@ -167,8 +167,15 @@ def skipgram(currentWord, C, contextWords, tokens, inputVectors, outputVectors,
     [-0.33867074 -0.80966534 -0.47931635]
     [-0.52629529 -0.78190408  0.33412466]]
     end print'''
-    
-    raise NotImplementedError
+    c_word_index = tokens[currentWord]
+    v_hat = inputVectors[c_word_index]
+
+    for j in contextWords:
+        o_context_index = tokens[j]
+        t_cost, t_gradIn, t_gradOut = word2vecCostAndGradient(v_hat, o_context_index, outputVectors, dataset)
+        cost += t_cost
+        gradIn[c_word_index] += t_gradIn
+        gradOut += t_gradOut
     ### END YOUR CODE
 
     return cost, gradIn, gradOut
@@ -225,8 +232,11 @@ def word2vec_sgd_wrapper(word2vecModel, tokens, wordVectors, dataset, C,
     [-0.61517874  0.5147624  -0.59713884]
     [-0.33867074 -0.80966534 -0.47931635]
     [-0.52629529 -0.78190408  0.33412466]]
+    print C: 5
     '''
+    # traverse from 0 to batchsize - 1(that is 49)
     for i in xrange(batchsize):
+        # select the centor word C1 from [1, 5]
         C1 = random.randint(1,C)
         centerword, context = dataset.getRandomContext(C1)
 
