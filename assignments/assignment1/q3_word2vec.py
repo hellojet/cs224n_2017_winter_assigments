@@ -59,18 +59,27 @@ def softmaxCostAndGradient(predicted, target, outputVectors, dataset):
     """
 
     ### YOUR CODE HERE
+    '''print variables:
+    print predicted.shape: 3x
+    print target: 4
+    print outputVectors.shape: 5x3
+    end print'''
     # get y: y[target] = 1, else position = 0
+    # y: 1x5
     y = np.zeros((1, outputVectors.shape[0]))
     y[0,target] = 1
     # get y_hat
     # outputVectors is U matrix, predicted is vector v
-    y_hat = softmax(np.dot(outputVectors, predicted))
+    # y_hat: 5x
+    y_hat = softmax(np.dot(outputVectors, predicted)).T
     # get cost: CE = -y*log(y_hat)
     cost = -y.dot(np.log(y_hat))
     # get gradPred: U(y_hat-y)
-    gradPred = outputVectors.dot(y_hat - y)
+    # gradPred: 3x
+    gradPred = (outputVectors.T.dot(np.transpose(y_hat - y))).flatten()
     # get grad: v(y_hat-y).T
-    grad = predicted.dot((y_hat-y).T)
+    # grad: 5x3
+    grad = (y_hat - y).T.dot(predicted.reshape(1,3))
     ### END YOUR CODE
 
     return cost, gradPred, grad
