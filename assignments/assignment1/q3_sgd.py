@@ -66,7 +66,6 @@ def sgd(f, x0, step, iterations, postprocessing=None, useSaved=False,
         if start_iter > 0:
             x0 = oldx
             step *= 0.5 ** (start_iter / ANNEAL_EVERY)
-
         if state:
             random.setstate(state)
     else:
@@ -85,7 +84,11 @@ def sgd(f, x0, step, iterations, postprocessing=None, useSaved=False,
 
         cost = None
         ### YOUR CODE HERE
-        raise NotImplementedError
+        # comput the cost and grad from f(x)
+        cost, grad = f(x)
+        # update x using x - step * grad
+        x -= step * grad
+        postprocessing(x)
         ### END YOUR CODE
 
         if iter % PRINT_EVERY == 0:
