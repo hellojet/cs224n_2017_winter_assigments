@@ -181,7 +181,6 @@ def skipgram(currentWord, C, contextWords, tokens, inputVectors, outputVectors,
     end print'''
     c_word_index = tokens[currentWord]
     v_hat = inputVectors[c_word_index]
-
     for j in contextWords:
         o_context_index = tokens[j]
         t_cost, t_gradIn, t_gradOut = word2vecCostAndGradient(v_hat, o_context_index, outputVectors, dataset)
@@ -209,10 +208,15 @@ def cbow(currentWord, C, contextWords, tokens, inputVectors, outputVectors,
     cost = 0.0
     gradIn = np.zeros(inputVectors.shape)
     gradOut = np.zeros(outputVectors.shape)
-
     ### YOUR CODE HERE
-    
-    raise NotImplementedError
+    v_hat = np.zeros((inputVectors.shape[1],))
+    for j in contextWords:
+        context_index = tokens[j]
+        v_hat += inputVectors[context_index]
+    cost, c_gradIn, gradOut = word2vecCostAndGradient(v_hat, tokens[currentWord], outputVectors, dataset)
+    for j in contextWords:
+        gradIn[tokens[j]] += c_gradIn # here '+=' means that repeated words may appear in the context
+    # gradIn[tokens[currentWord]]
     ### END YOUR CODE
 
     return cost, gradIn, gradOut
@@ -303,13 +307,7 @@ def test_word2vec():
     [-0.33867074 -0.80966534 -0.47931635]
     [-0.52629529 -0.78190408  0.33412466]]
     '''
-    # gradcheck_naive(lambda vec: word2vec_sgd_wrapper(
-    #     skipgram, dummy_tokens, vec, dataset, 5, softmaxCostAndGradient),
-    #     dummy_vectors)
-    # # test skip-gram and negative sampling
-    # gradcheck_naive(lambda vec: word2vec_sgd_wrapper(
-    #     skipgram, dummy_tokens, vec, dataset, 5, negSamplingCostAndGradient),
-    #     dummy_vectors)
+    # gradcheck_naive(lambda v?
     print "\n==== Gradient check for CBOW      ===="
     # test CBOW and softmax
     gradcheck_naive(lambda vec: word2vec_sgd_wrapper(
