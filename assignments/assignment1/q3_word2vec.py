@@ -79,7 +79,7 @@ def softmaxCostAndGradient(predicted, target, outputVectors, dataset):
     gradPred = (outputVectors.T.dot(np.transpose(y_hat - y))).flatten()
     # get grad: v(y_hat-y).T
     # grad: 5x3
-    grad = (y_hat - y).T.dot(predicted.reshape(1,3))
+    grad = (y_hat - y).T.dot(predicted.reshape(1,-1))
     ### END YOUR CODE
     return cost, gradPred, grad
 
@@ -128,7 +128,7 @@ def negSamplingCostAndGradient(predicted, target, outputVectors, dataset,
     grad[target] = (z - 1)*predicted
     for indice in indices:
         gradPred -= (sigmoid(-outputVectors[indice].dot(predicted))-1) * outputVectors[indice]
-        grad[indice] += -(sigmoid(-outputVectors[indice].reshape(1,3).dot(predicted)) - 1)*predicted
+        grad[indice] += -(sigmoid(-outputVectors[indice].reshape(1,-1).dot(predicted)) - 1)*predicted
     ### END YOUR CODE
 
     return cost, gradPred, grad
