@@ -116,19 +116,27 @@ def negSamplingCostAndGradient(predicted, target, outputVectors, dataset,
     indices.extend(getNegativeSamples(target, dataset, K))
 
     ### YOUR CODE HERE
+    grad = np.zeros(outputVectors.shape)
     # get cost: -log(sigmoid(Uv))-\Sigma(log(sigmoid(-u[indices]v)))
     # predicted: 3x outputVectors:5x3
     z = sigmoid(outputVectors[target].dot(predicted))
-    cost = -np.log(z)-np.sum(np.log(sigmoid(-outputVectors[indices,:].dot(predicted))))
+    cost = -np.log(z)
     # get gradPred: (sigmoid(uv)-1)u-\Sigma((sigmoid(-u_kv)-1)u)
-    gradPred = (z-1)*outputVectors[target]
+    gradPred = (z-1.0) * outputVectors[target]
     # get grad[target]: (sigmoid(uv)-1)v
     # get grad[k]: -(sigmoid(-u_k * v)-1)v
-    grad = np.zeros(outputVectors.shape)
-    grad[target] = (z - 1)*predicted
-    for indice in indices:
-        gradPred -= (sigmoid(-outputVectors[indice].dot(predicted))-1) * outputVectors[indice]
-        grad[indice] += -(sigmoid(-outputVectors[indice].reshape(1,-1).dot(predicted)) - 1)*predicted
+    grad[target] = (z - 1.0) * predicted
+
+    for k in xrange(K):
+        samp = dataset.sampleTokenIdx()
+        z = sigmoid(np.dot(outputVectors[samp], predicted))
+        cost -= np.log(1.0 - z)
+        grad[samp] += predicted * z
+        gradPred += outputVectors[samp] * z
+    # for indice in indices:
+    #     cost -= np.log(sigmoid(-outputVectors[indice,:].dot(predicted)))
+    #     gradPred -= (sigmoid(-outputVectors[indice].dot(predicted))-1) * outputVectors[indice]
+    #     grad[indice] += -(sigmoid(-outputVectors[indice].reshape(1,-1).dot(predicted)) - 1)*predicted
     ### END YOUR CODE
 
     return cost, gradPred, grad
@@ -307,7 +315,12 @@ def test_word2vec():
     [-0.33867074 -0.80966534 -0.47931635]
     [-0.52629529 -0.78190408  0.33412466]]
     '''
-    # gradcheck_naive(lambda v?
+    gradcheck_naive(lambda vec: word2vec_sgd_wrapper(
+        skipgram, dummy_tokens, vec, dataset, 5, softmaxCostAndGradient),
+                    dummy_vectors)
+    gradcheck_naive(lambda vec: word2vec_sgd_wrapper(
+        skipgram, dummy_tokens, vec, dataset, 5, negSamplingCostAndGradient),
+                    dummy_vectors)
     print "\n==== Gradient check for CBOW      ===="
     # test CBOW and softmax
     gradcheck_naive(lambda vec: word2vec_sgd_wrapper(

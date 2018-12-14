@@ -40,19 +40,19 @@ def forward_backward_prop(X, labels, params, dimensions):
 
     # Note: compute cost based on `sum` not `mean`.
     ### YOUR CODE HERE: forward propagation
-    H = sigmoid(np.dot(X, W1) + b1)
-    Y = softmax(np.dot(H, W2) + b2)
+    h = sigmoid(np.dot(X, W1) + b1)
+    Y = softmax(np.dot(h, W2) + b2)
     cost = -np.sum(np.multiply(labels, np.log(Y))) / X.shape[0]
     ### END YOUR CODE
 
     ### YOUR CODE HERE: backward propagation
     delta1 = (Y - labels) / X.shape[0]
     delta2 = np.dot(delta1, W2.T)
-    delta3 = np.multiply(delta2, sigmoid_grad(H))
+    delta3 = np.multiply(delta2, sigmoid_grad(h))
     gradW1 = np.dot(X.T, delta3)
     gradb1 = np.sum(delta3, axis=0)
-    gradW2 = np.dot(H.T, delta1)
-    gradb2 = np.sum(delta1, axis=0)
+    gradW2 = np.dot(h.T, delta1)
+    gradb2 = np.sum(delta1, axis=0,keepdims=True)
     ### END YOUR CODEX
 
     ### Stack gradients (do not modify)

@@ -4,3 +4,6 @@ assignments/assignment1/utils/datasets/
 *.ipynb
 assignments/assignment1/.ipynb_checkpoints/
 .vscode
+*.npy
+*.png
+*.7z
