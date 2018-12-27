@@ -96,9 +96,9 @@ class SoftmaxModel(Model):
             pred: A tensor of shape (batch_size, n_classes)
         """
         ### YOUR CODE HERE
-        W = tf.Variable(tf.constant(0, shape=(self.config.n_features, self.config.n_classes)))
-        b = tf.Variable(tf.constant(0, shape(self.config.batch_size, self.config.n_classes)))
-        pred = softmax(self.input_placeholder * W + b)
+        W = tf.Variable(tf.constant(0.0, shape=(self.config.n_features, self.config.n_classes)))
+        b = tf.Variable(tf.constant(0.0, shape=(self.config.batch_size, self.config.n_classes)))
+        pred = softmax(tf.matmul(self.input_placeholder, W) + b)
         ### END YOUR CODE
         return pred
 
