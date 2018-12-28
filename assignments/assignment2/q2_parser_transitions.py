@@ -40,13 +40,13 @@ class PartialParse(object):
         ### YOUR CODE HERE
         if (transition == "S"):
             self.stack.append(self.buffer[0])
-            self.buffer.pop(0)
+            del self.buffer[0]
         elif (transition == "LA"):
             self.dependencies.append((self.stack[-1], self.stack[-2]))
-            self.stack.pop(-2)
+            del self.stack[-2]
         elif (transition == "RA"):
             self.dependencies.append((self.stack[-2], self.stack[-1]))
-            self.stack.pop(-1)
+            del self.stack[-1]
         ### END YOUR CODE
 
     def parse(self, transitions):
@@ -82,7 +82,26 @@ def minibatch_parse(sentences, model, batch_size):
 
     ### YOUR CODE HERE
     dependencies = []
-    
+    partial_parses = []
+    # init dependencies and partial_parses
+    for i, sentence in enumerate(sentences):
+        dependencies.append([])
+        partial_parses.append([i, PartialParse(sentence)])
+    # shallow copy of partial_parses 
+    unfinished_parses = partial_parses 
+    while len(unfinished_parses) > 0:
+        # take the first batch_size parses
+        minibatch = unfinished_parses[:batch_size]
+        # generate transitions
+        minibatch_tmp = [parse[1] for parse in minibatch]
+        transitions = model.predict(minibatch_tmp)
+        for i, transition in enumerate(transitions):
+            minibatch[i][1].parse_step(transition)
+            if len(minibatch[i][1].buffer) == 0 and len(minibatch[i][1].stack) == 1:
+                # todo: how to sure x?
+                x = minibatch[i][0]
+                dependencies[x] = minibatch[i][1].dependencies
+                del unfinished_parses[i]
     ### END YOUR CODE
 
     return dependencies
