@@ -81,27 +81,26 @@ def minibatch_parse(sentences, model, batch_size):
     """
 
     ### YOUR CODE HERE
-    dependencies = []
     partial_parses = []
-    # init dependencies and partial_parses
+    # init partial_parses
     for i, sentence in enumerate(sentences):
-        dependencies.append([])
-        partial_parses.append([i, PartialParse(sentence)])
+        partial_parses.append(PartialParse(sentence))
     # shallow copy of partial_parses 
     unfinished_parses = partial_parses 
     while len(unfinished_parses) > 0:
         # take the first batch_size parses
-        minibatch = unfinished_parses[:batch_size]
-        # generate transitions
-        minibatch_tmp = [parse[1] for parse in minibatch]
-        transitions = model.predict(minibatch_tmp)
-        for i, transition in enumerate(transitions):
-            minibatch[i][1].parse_step(transition)
-            if len(minibatch[i][1].buffer) == 0 and len(minibatch[i][1].stack) == 1:
-                # todo: how to sure x?
-                x = minibatch[i][0]
-                dependencies[x] = minibatch[i][1].dependencies
-                del unfinished_parses[i]
+        minibatch = unfinished_parses[0:batch_size]
+        while len(minibatch) > 0:
+            # generate transitions
+            transitions = model.predict(minibatch)
+            for i, transition in enumerate(transitions):
+                minibatch[i].parse_step(transition)
+            minibatch = [parse for parse in minibatch if len(parse.buffer) > 0 or len(parse.stack) > 1]
+        unfinished_parses = unfinished_parses[batch_size:]
+
+    dependencies = []
+    for n in range(len(sentences)):
+        dependencies.append(partial_parses[n].dependencies)
     ### END YOUR CODE
 
     return dependencies
