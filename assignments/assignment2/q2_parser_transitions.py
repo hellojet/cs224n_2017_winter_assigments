@@ -40,13 +40,13 @@ class PartialParse(object):
         ### YOUR CODE HERE
         if (transition == "S"):
             self.stack.append(self.buffer[0])
-            del self.buffer[0]
-        elif (transition == "LA"):
+            self.buffer.pop(0)
+        elif transition == "LA":
             self.dependencies.append((self.stack[-1], self.stack[-2]))
-            del self.stack[-2]
-        elif (transition == "RA"):
+            self.stack.pop(-2)
+        elif transition == "RA":
             self.dependencies.append((self.stack[-2], self.stack[-1]))
-            del self.stack[-1]
+            self.stack.pop(-1)
         ### END YOUR CODE
 
     def parse(self, transitions):
@@ -81,10 +81,8 @@ def minibatch_parse(sentences, model, batch_size):
     """
 
     ### YOUR CODE HERE
-    partial_parses = []
     # init partial_parses
-    for i, sentence in enumerate(sentences):
-        partial_parses.append(PartialParse(sentence))
+    partial_parses = [PartialParse(s) for s in sentences]
     # shallow copy of partial_parses 
     unfinished_parses = partial_parses 
     while len(unfinished_parses) > 0:

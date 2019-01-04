@@ -84,7 +84,7 @@ class ParserModel(Model):
         ### YOUR CODE HERE
         feed_dict = {
             self.input_placeholder: inputs_batch,
-            self.dropout_placeholder: dropout
+            self.dropout_placeholder: dropout,
         }
         # When an argument is None, don't add it to the feed_dict
         if labels_batch is not None:
@@ -140,10 +140,10 @@ class ParserModel(Model):
         x = self.add_embedding()
         ### YOUR CODE HERE
         xavier_initializer = xavier_weight_init()
-        W = xavier_initializer((self.config.n_features * self.config.embed_size, self.config.hidden_size)) ## (batch_size, n_features*embed_size)
+        self.W = W = xavier_initializer((self.config.n_features * self.config.embed_size, self.config.hidden_size)) ## (batch_size, n_features*embed_size)
         U = xavier_initializer((self.config.hidden_size, self.config.n_classes)) ## (hidden_size, n_classes)
-        b1 = tf.zeros((1, self.config.hidden_size)) ## (1, n_features)
-        b2 = tf.zeros((1, self.config.n_classes)) ## (1, n_classes)
+        b1 = tf.Variable(tf.random_uniform((1, self.config.hidden_size), minval=-0.5, maxval=0.5)) ## (1, n_features)
+        b2 = tf.Variable(tf.random_uniform((1, self.config.n_classes), minval=-0.5, maxval=0.5)) ## (1, n_classes)
         h = tf.nn.relu(tf.matmul(x, W) + b1) ## (batch_size, hidden_size)
         h_drop = tf.nn.dropout(h, 1 - self.dropout_placeholder) ## (batch_size, hidden_size)
         pred = tf.matmul(h_drop, U) + b2 ## (batch_size, n_classes)
