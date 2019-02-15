@@ -190,7 +190,9 @@ class WindowModel(NERModel):
             embeddings: tf.Tensor of shape (None, n_window_features*embed_size)
         """
         ### YOUR CODE HERE (!3-5 lines)
-        
+        pe = tf.Variable(self.pretrained_embeddings)
+        el = tf.nn.embedding_lookup(pe, [self.input_placeholder])
+        embeddings = tf.reshape(el, [-1, self.config.n_window_features * self.config.embed_size])
         ### END YOUR CODE
         return embeddings
 
