@@ -97,7 +97,17 @@ def make_windowed_data(data, start, end, window_size = 1):
     windowed_data = []
     for sentence, labels in data:
 		### YOUR CODE HERE (5-20 lines)
-
+        [sentence.insert(i, start) for i in range(window_size)]
+        [sentence.append(end) for i in range(window_size)]
+        start_pos, end_pos = window_size, len(sentence) - window_size
+        for i in range(start_pos, end_pos):
+            windowd_word = []
+            for temp in sentence[i - window_size: i + window_size + 1]:
+                windowd_word += temp
+            windowed_data.append((windowd_word, labels[i - window_size]))
+        # sentence被修改后要改回来
+        [sentence.pop(i) for i in range(window_size)]
+        [sentence.pop() for i in range(window_size)]
 		### END YOUR CODE
     return windowed_data
 
@@ -130,7 +140,9 @@ class WindowModel(NERModel):
         (Don't change the variable names)
         """
         ### YOUR CODE HERE (~3-5 lines)
-
+        self.input_placeholder = tf.placeholder(tf.int32, shape=(None, self.config.n_window_features))
+        self.labels_placeholder = tf.placeholder(tf.int32, shape=(None,))
+        self.dropout_placeholder = tf.placeholder(tf.float32)
         ### END YOUR CODE
 
     def create_feed_dict(self, inputs_batch, labels_batch=None, dropout=1):
@@ -153,7 +165,11 @@ class WindowModel(NERModel):
             feed_dict: The feed dictionary mapping from placeholders to values.
         """
         ### YOUR CODE HERE (~5-10 lines)
-         
+        feed_dict = {
+            self.input_placeholder: inputs_batch,
+            self.labels_placeholder: labels_batch,
+            self.dropout_placeholder: dropout
+        }
         ### END YOUR CODE
         return feed_dict
 
@@ -174,9 +190,7 @@ class WindowModel(NERModel):
             embeddings: tf.Tensor of shape (None, n_window_features*embed_size)
         """
         ### YOUR CODE HERE (!3-5 lines)
-                                                             
-                                  
-                                                                                                                 
+        
         ### END YOUR CODE
         return embeddings
 
@@ -304,9 +318,7 @@ def test_make_windowed_data():
     sentence_labels = [[1, 2, 3]]
     data = zip(sentences, sentence_labels)
     w_data = make_windowed_data(data, start=[5,0], end=[6,0], window_size=1)
-
     assert len(w_data) == sum(len(sentence) for sentence in sentences)
-
     assert w_data == [
         ([5,0] + [1,1] + [2,0], 1,),
         ([1,1] + [2,0] + [3,3], 2,),
