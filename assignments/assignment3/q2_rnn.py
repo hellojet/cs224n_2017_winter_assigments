@@ -152,6 +152,10 @@ class RNNModel(NERModel):
         (Don't change the variable names)
         """
         ### YOUR CODE HERE (~4-6 lines)
+        self.input_placeholder = tf.placeholder(tf.int32, shape=(None,self.max_length, self.config.n_features), name='input')
+        self.labels_placeholder = tf.placeholder(tf.int32, shape=(None, self.max_length), name='labels')
+        self.mask_placeholder = tf.placeholder(tf.bool, shape=(None, self.max_length), name='mask')
+        self.dropout_placeholder = tf.placeholder(tf.float32, name='dropout')
         ### END YOUR CODE
 
     def create_feed_dict(self, inputs_batch, mask_batch, labels_batch=None, dropout=1):
@@ -177,6 +181,13 @@ class RNNModel(NERModel):
             feed_dict: The feed dictionary mapping from placeholders to values.
         """
         ### YOUR CODE (~6-10 lines)
+        feed_dict = {
+            self.input_placeholder: inputs_batch,
+            self.mask_placeholder: mask_batch,
+            self.dropout_placeholder: dropout
+        }
+        if labels_batch is not None:
+            feed_dict[self.labels_placeholder] = labels_batch
         ### END YOUR CODE
         return feed_dict
 
@@ -201,6 +212,9 @@ class RNNModel(NERModel):
             embeddings: tf.Tensor of shape (None, max_length, n_features*embed_size)
         """
         ### YOUR CODE HERE (~4-6 lines)
+        pe = tf.Variable(self.pretrained_embeddings)
+        el = tf.nn.embedding_lookup(pe, self.input_placeholder)
+        embeddings = tf.reshape(el, [-1, self.max_length, self.config.n_features * self.config.embed_size])
         ### END YOUR CODE
         return embeddings
 
@@ -262,16 +276,26 @@ class RNNModel(NERModel):
         # Define U and b2 as variables.
         # Initialize state as vector of zeros.
         ### YOUR CODE HERE (~4-6 lines)
+        with tf.variable_scope('Layer1'):
+            U = tf.get_variable(name='U', shape=(self.config.hidden_size, self.config.n_classes), dtype=tf.float32, initializer=tf.contrib.layers.xavier_initializer(seed=1))
+            b2 = tf.get_variable(name='b2', shape=(self.config.n_classes,), dtype=tf.float32, initializer=tf.contrib.layers.xavier_initializer(seed=2))
+        input_shape = tf.shape(x)
+        state = tf.zeros([input_shape[0], self.config.hidden_size])
         ### END YOUR CODE
 
         with tf.variable_scope("RNN"):
             for time_step in range(self.max_length):
                 ### YOUR CODE HERE (~6-10 lines)
-                pass
+                if time_step > 0:
+                    tf.get_variable_scope().reuse_variables()
+                _, state = cell(x[:,time_step,:], state, scope='RNN') # _作为变量，之后不会再引用这个变量，不关心的变量
+                state_dropout = tf.nn.dropout(state, dropout_rate)
+                preds.append(tf.matmul(state_dropout, U) + b2)
                 ### END YOUR CODE
 
         # Make sure to reshape @preds here.
         ### YOUR CODE HERE (~2-4 lines)
+        preds = tf.stack(preds, axis=1)
         ### END YOUR CODE
 
         assert preds.get_shape().as_list() == [None, self.max_length, self.config.n_classes], "predictions are not of the right shape. Expected {}, got {}".format([None, self.max_length, self.config.n_classes], preds.get_shape().as_list())
@@ -293,6 +317,11 @@ class RNNModel(NERModel):
             loss: A 0-d tensor (scalar)
         """
         ### YOUR CODE HERE (~2-4 lines)
+        # 先对prediction和labels进行mask，再算熵
+        masked_preds = tf.boolean_mask(preds, self.mask_placeholder)
+        masked_labels = tf.boolean_mask(self.labels_placeholder, self.mask_placeholder)
+        loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=masked_preds, labels=masked_labels)
+        loss = tf.reduce_mean(loss)
         ### END YOUR CODE
         return loss
 
@@ -316,6 +345,7 @@ class RNNModel(NERModel):
             train_op: The Op for training.
         """
         ### YOUR CODE HERE (~1-2 lines)
+        train_op = tf.train.AdamOptimizer(self.config.lr).minimize(loss)
         ### END YOUR CODE
         return train_op
 
