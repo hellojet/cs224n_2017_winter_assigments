@@ -65,7 +65,20 @@ class GRUCell(tf.nn.rnn_cell.RNNCell):
         # be defined elsewhere!
         with tf.variable_scope(scope):
             ### YOUR CODE HERE (~20-30 lines)
-            pass
+            U_r = tf.get_variable(name='U_r', shape=(self.state_size, self.state_size), dtype=tf.float32, initializer=tf.contrib.layers.xavier_initializer(seed=1))
+            W_r = tf.get_variable(name='W_r', shape=(self.input_size, self.state_size), dtype=tf.float32, initializer=tf.contrib.layers.xavier_initializer(seed=2))
+            b_r = tf.get_variable(name='b_r', shape=(self.state_size,), dtype=tf.float32, initializer=tf.contrib.layers.xavier_initializer(seed=3))
+            U_z = tf.get_variable(name='U_z', shape=(self.state_size, self.state_size), dtype=tf.float32, initializer=tf.contrib.layers.xavier_initializer(seed=4))
+            W_z = tf.get_variable(name='W_z', shape=(self.input_size, self.state_size), dtype=tf.float32, initializer=tf.contrib.layers.xavier_initializer(seed=5))
+            b_z = tf.get_variable(name='b_z', shape=(self.state_size,), dtype=tf.float32, initializer=tf.contrib.layers.xavier_initializer(seed=6))
+            U_o = tf.get_variable(name='U_o', shape=(self.state_size, self.state_size), dtype=tf.float32, initializer=tf.contrib.layers.xavier_initializer(seed=7))
+            W_o = tf.get_variable(name='W_o', shape=(self.input_size, self.state_size), dtype=tf.float32, initializer=tf.contrib.layers.xavier_initializer(seed=8))
+            b_o = tf.get_variable(name='b_o', shape=(self.state_size,), dtype=tf.float32, initializer=tf.contrib.layers.xavier_initializer(seed=9))
+            z = tf.sigmoid(tf.matmul(inputs, W_z) + tf.matmul(state, U_z) + b_z)
+            r = tf.sigmoid(tf.matmul(inputs, W_r) + tf.matmul(state, U_r) + b_r)
+            # * or multiply()是点乘,matmul是矩阵乘法
+            o = tf.tanh(tf.matmul(inputs, W_o) + r * tf.matmul(state, U_o) + b_o)
+            new_state = z * state + (1 - z) * o
             ### END YOUR CODE ###
         # For a GRU, the output and state are the same (N.B. this isn't true
         # for an LSTM, though we aren't using one of those in our
